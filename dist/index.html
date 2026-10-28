@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14213b">
+  <meta name="description" content="Подробный курс Wazuh на русском языке с нуля: 14 модулей, 56 уроков, лабораторные работы, тесты и итоговый проект.">
+  <title>Wazuh Практикум — от первого лога до своего SOC</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%233d64f5'/%3E%3Cpath d='M10 12l4 16 6-10 6 10 4-16' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">Перейти к содержанию</a>
+  <aside class="sidebar" id="sidebar" aria-label="Главная навигация">
+    <a class="brand" href="#/" aria-label="Wazuh Практикум, главная"><span class="brand-mark">w</span><span>Wazuh<span class="brand-sub">ПРАКТИКУМ</span></span></a>
+    <div class="course-label">ВАШ УЧЕБНЫЙ МАРШРУТ</div>
+    <nav id="main-nav"></nav>
+    <div class="sidebar-course"><span class="tiny-label">ОТ ОСНОВ К ПРАКТИКЕ</span><h3>Каждый урок —<br>новый навык.</h3><p>Читайте. Проверяйте.<br>Собирайте свой SOC.</p><a href="#/lesson/01-01">Начать с нуля <span>↗</span></a></div>
+    <div class="sidebar-bottom"><span class="status-dot"></span> На русском · Wazuh 4.14<span class="sidebar-caption">Независимый учебный проект</span></div>
+  </aside>
+  <div class="mobile-shade" id="mobile-shade"></div>
+  <div class="shell">
+    <header class="topbar">
+      <button class="icon-button mobile-menu" id="menu-button" aria-label="Открыть меню" aria-expanded="false">☰</button>
+      <div class="breadcrumb" id="breadcrumb">Учебный центр <span>/</span> Обзор курса</div>
+      <div class="top-actions"><button class="search-trigger" id="search-open"><span data-icon="search"></span><span>Найти урок или тему</span><kbd>/</kbd></button><a class="top-avatar" href="#/progress" aria-label="Мой прогресс">Я</a></div>
+    </header>
+    <main id="content" tabindex="-1"><div class="loading">Загружаем учебный маршрут…</div></main>
+    <footer class="footer"><span>Wazuh Практикум <b>·</b> Учиться, чтобы понимать.</span><a href="#/sources">Источники и актуальность ↗</a></footer>
+  </div>
+  <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title"><div class="search-head"><h2 id="search-title">Поиск по всему курсу</h2><button class="icon-button" id="search-close" aria-label="Закрыть поиск">✕</button></div><label class="search-input-wrap"><span data-icon="search"></span><input id="global-search" type="search" placeholder="Например, Sysmon, установка или FIM" autocomplete="off"></label><div id="search-results" aria-live="polite"></div><div class="search-hint">Поиск по названиям, объяснениям и практическим работам</div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript>Для навигации и интерактивных заданий включите JavaScript. <a href="./wazuh-learning-plan-ru.md">Скачать текстовый план обучения</a>.</noscript>
+</body>
+</html>

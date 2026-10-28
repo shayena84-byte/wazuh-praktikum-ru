@@ -1,0 +1,49 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Получить исходный код
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Сформировать материалы курса
+        run: python3 export_course.py
+
+      - name: Проверить курс и пути файлов
+        run: |
+          python3 validate_course.py
+          python3 validate_pages.py
+          node --check dist/app.js
+
+      - name: Подготовить GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Загрузить сайт
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+      - name: Опубликовать сайт
+        id: deployment
+        uses: actions/deploy-pages@v4
