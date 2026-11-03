@@ -1,0 +1,902 @@
+[
+  {
+    "id": "base",
+    "title": "01 · Linux: ошибки входа и изменение файла",
+    "lesson": "11-02",
+    "premise": "Синтетические события двух узлов. Свяжите входы и FIM по времени, но отдельно проверьте, достаточно ли оснований для вывода об атаке.",
+    "events": [
+      {
+        "time": "10:14:02",
+        "timestamp": "2026-11-03T10:14:02Z",
+        "agent": "linux-lab",
+        "level": 5,
+        "id": "5710",
+        "description": "Неудачная попытка входа SSH",
+        "src": "192.0.2.25",
+        "user": "trainee",
+        "action": "failed",
+        "kind": "training"
+      },
+      {
+        "time": "10:14:09",
+        "timestamp": "2026-11-03T10:14:09Z",
+        "agent": "linux-lab",
+        "level": 5,
+        "id": "5710",
+        "description": "Повторная ошибка аутентификации SSH",
+        "src": "192.0.2.25",
+        "user": "trainee",
+        "action": "failed",
+        "kind": "training"
+      },
+      {
+        "time": "10:14:15",
+        "timestamp": "2026-11-03T10:14:15Z",
+        "agent": "linux-lab",
+        "level": 10,
+        "id": "100103",
+        "description": "Учебная корреляция ошибок входа",
+        "src": "192.0.2.25",
+        "user": "trainee",
+        "action": "threshold",
+        "kind": "training"
+      },
+      {
+        "time": "10:15:04",
+        "timestamp": "2026-11-03T10:15:04Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "5715",
+        "description": "Успешная аутентификация SSH",
+        "src": "192.0.2.25",
+        "user": "trainee",
+        "action": "success",
+        "kind": "training"
+      },
+      {
+        "time": "10:16:22",
+        "timestamp": "2026-11-03T10:16:22Z",
+        "agent": "linux-lab",
+        "level": 7,
+        "id": "550",
+        "description": "Изменился учебный конфигурационный файл",
+        "src": "",
+        "user": "trainee",
+        "action": "modified",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/app.conf",
+        "process": "nano"
+      },
+      {
+        "time": "10:18:11",
+        "timestamp": "2026-11-03T10:18:11Z",
+        "agent": "win-lab",
+        "level": 5,
+        "id": "60122",
+        "description": "Ошибка входа Windows",
+        "src": "192.0.2.60",
+        "user": "student",
+        "action": "failed",
+        "kind": "training",
+        "event_id": 4625
+      },
+      {
+        "time": "10:19:08",
+        "timestamp": "2026-11-03T10:19:08Z",
+        "agent": "win-lab",
+        "level": 4,
+        "id": "61603",
+        "description": "Запущен Notepad",
+        "src": "",
+        "user": "student",
+        "action": "process_created",
+        "kind": "training",
+        "event_id": 1,
+        "process": "notepad.exe"
+      },
+      {
+        "time": "10:21:44",
+        "timestamp": "2026-11-03T10:21:44Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "100102",
+        "description": "Контрольный успешный вход приложения",
+        "src": "192.0.2.80",
+        "user": "demo",
+        "action": "success",
+        "kind": "training"
+      }
+    ],
+    "tasks": [
+      "Отберите источник 192.0.2.25 и объясните назначение каждого события",
+      "Укажите первое доказанное успешное действие после ошибок",
+      "Найдите изменение файла и объясните, какие поля связывают его со входом",
+      "Отделите события win-lab, не относящиеся к этому источнику",
+      "Запишите две альтернативные гипотезы и следующий запрос"
+    ],
+    "answer": "### Что установлено\nВ 10:14 от адреса 192.0.2.25 идут ошибки SSH, затем учебный пороговый алерт и успешный вход trainee в 10:15:04. В 10:16:22 на linux-lab изменён app.conf, указан процесс nano. Корреляционный алерт не является третьей независимой попыткой: это производный результат анализа исходных ошибок.\n\n### Чего пока не хватает\nСовпадение времени, имени и узла делает связь правдоподобной, но не доказывает, что именно вошедший сеанс изменил файл. Нужны audit session ID, auid, идентификаторы процесса и сведения о том, кто владеет учётной записью. Ошибки мог вызвать администратор, который затем исправил раскладку и выполнил согласованную работу. Возможна и компрометация; обе версии нужно проверить.\n\n### Следующий шаг\nПроверьте согласованное окно изменений, журнал sudo/audit и содержательную разницу файла. Сохраните исходные строки и запрос. События win-lab и приложения от 192.0.2.80 не включайте в эту цепочку без отдельного основания. Не блокируйте адрес по одному совпадению имени пользователя.",
+    "queries": [
+      {
+        "label": "Один источник",
+        "query": "data.srcip:\"192.0.2.25\""
+      },
+      {
+        "label": "FIM",
+        "query": "data.action:\"modified\""
+      },
+      {
+        "label": "Уровень ≥ 7",
+        "query": "rule.level>=7"
+      },
+      {
+        "label": "Все события",
+        "query": ""
+      }
+    ]
+  },
+  {
+    "id": "ad",
+    "title": "02 · Active Directory: входы и привилегированная группа",
+    "lesson": "15-04",
+    "premise": "Учебный домен LAB, два сервера и рабочая станция. Схема полей намеренно нормализована для тренажёра: в настоящих событиях Windows используйте data.win.* и Provider/EventID.",
+    "events": [
+      {
+        "time": "09:00:00",
+        "timestamp": "2026-11-03T09:00:00Z",
+        "agent": "ad-dc01",
+        "level": 3,
+        "id": "110000",
+        "description": "Выдан TGT для LAB\\operator",
+        "src": "192.0.2.41",
+        "user": "LAB\\operator",
+        "action": "tgt_issued",
+        "kind": "training",
+        "event_id": 4768,
+        "channel": "Security"
+      },
+      {
+        "time": "09:00:03",
+        "timestamp": "2026-11-03T09:00:03Z",
+        "agent": "ad-dc01",
+        "level": 3,
+        "id": "110001",
+        "description": "Выдан билет сервиса cifs/fs01",
+        "src": "192.0.2.41",
+        "user": "LAB\\operator",
+        "action": "service_ticket",
+        "kind": "training",
+        "event_id": 4769,
+        "target": "cifs/fs01",
+        "channel": "Security"
+      },
+      {
+        "time": "09:00:04",
+        "timestamp": "2026-11-03T09:00:04Z",
+        "agent": "fs01",
+        "level": 3,
+        "id": "110002",
+        "description": "Успешный сетевой вход LogonType 3",
+        "src": "192.0.2.41",
+        "user": "LAB\\operator",
+        "action": "success",
+        "kind": "training",
+        "event_id": 4624,
+        "channel": "Security"
+      },
+      {
+        "time": "09:02:10",
+        "timestamp": "2026-11-03T09:02:10Z",
+        "agent": "fs01",
+        "level": 5,
+        "id": "110003",
+        "description": "Сетевой вход trainee: неверный пароль",
+        "src": "192.0.2.88",
+        "user": "LAB\\trainee",
+        "action": "failed",
+        "kind": "training",
+        "event_id": 4625,
+        "channel": "Security"
+      },
+      {
+        "time": "09:02:15",
+        "timestamp": "2026-11-03T09:02:15Z",
+        "agent": "fs01",
+        "level": 5,
+        "id": "110003",
+        "description": "Повторный неверный пароль trainee",
+        "src": "192.0.2.88",
+        "user": "LAB\\trainee",
+        "action": "failed",
+        "kind": "training",
+        "event_id": 4625,
+        "channel": "Security"
+      },
+      {
+        "time": "09:02:20",
+        "timestamp": "2026-11-03T09:02:20Z",
+        "agent": "ad-dc01",
+        "level": 5,
+        "id": "110004",
+        "description": "Отказ предварительной аутентификации trainee",
+        "src": "192.0.2.88",
+        "user": "LAB\\trainee",
+        "action": "preauth_failed",
+        "kind": "training",
+        "event_id": 4771,
+        "channel": "Security"
+      },
+      {
+        "time": "09:03:01",
+        "timestamp": "2026-11-03T09:03:01Z",
+        "agent": "fs01",
+        "level": 3,
+        "id": "110002",
+        "description": "Успешный сетевой вход trainee",
+        "src": "192.0.2.88",
+        "user": "LAB\\trainee",
+        "action": "success",
+        "kind": "training",
+        "event_id": 4624,
+        "channel": "Security"
+      },
+      {
+        "time": "09:05:00",
+        "timestamp": "2026-11-03T09:05:00Z",
+        "agent": "ad-dc01",
+        "level": 9,
+        "id": "110005",
+        "description": "operator добавил trainee в глобальную группу Lab-Admins",
+        "src": "",
+        "user": "LAB\\operator",
+        "action": "group_member_added",
+        "kind": "training",
+        "event_id": 4728,
+        "target": "LAB\\trainee -> Lab-Admins",
+        "channel": "Security"
+      },
+      {
+        "time": "09:05:01",
+        "timestamp": "2026-11-03T09:05:01Z",
+        "agent": "ad-dc01",
+        "level": 5,
+        "id": "110006",
+        "description": "Directory Service: старое значение атрибута удалено",
+        "src": "",
+        "user": "LAB\\operator",
+        "action": "value_deleted",
+        "kind": "training",
+        "event_id": 5136,
+        "target": "CN=Lab-Admins,OU=Training,DC=lab,DC=example",
+        "channel": "Security"
+      },
+      {
+        "time": "09:05:01",
+        "timestamp": "2026-11-03T09:05:01Z",
+        "agent": "ad-dc01",
+        "level": 5,
+        "id": "110006",
+        "description": "Directory Service: новое значение атрибута добавлено",
+        "src": "",
+        "user": "LAB\\operator",
+        "action": "value_added",
+        "kind": "training",
+        "event_id": 5136,
+        "target": "CN=Lab-Admins,OU=Training,DC=lab,DC=example",
+        "channel": "Security"
+      },
+      {
+        "time": "09:07:00",
+        "timestamp": "2026-11-03T09:07:00Z",
+        "agent": "win-lab",
+        "level": 3,
+        "id": "110007",
+        "description": "Открыт журнал плановых изменений CHG-LAB-104",
+        "src": "",
+        "user": "LAB\\operator",
+        "action": "change_record_opened",
+        "kind": "training",
+        "process": "notepad.exe"
+      },
+      {
+        "time": "09:10:00",
+        "timestamp": "2026-11-03T09:10:00Z",
+        "agent": "ad-dc01",
+        "level": 6,
+        "id": "110008",
+        "description": "trainee удалён из Lab-Admins",
+        "src": "",
+        "user": "LAB\\operator",
+        "action": "group_member_removed",
+        "kind": "training",
+        "event_id": 4729,
+        "target": "LAB\\trainee -> Lab-Admins",
+        "channel": "Security"
+      }
+    ],
+    "tasks": [
+      "Найдите все события event_id 4625 и укажите, где они записаны",
+      "Сравните источники 192.0.2.41 и 192.0.2.88: можно ли считать их одной сессией",
+      "Найдите изменение группы и определите Subject и Target",
+      "Объясните, почему два события 5136 не обязательно означают два изменения",
+      "Сформулируйте запрос на подтверждение плановых работ и границы вывода"
+    ],
+    "answer": "### Временная шкала\nВ 09:00 operator получает TGT и сервисный билет, после чего fs01 фиксирует сетевой вход. Это три разных наблюдения, а не три равнозначных успешных входа. Ошибки trainee с 192.0.2.88 принадлежат другой последовательности. 4624/4625 находятся на целевом fs01; события Kerberos — на DC. Искать все эти типы только на DC было бы ошибкой.\n\n### Изменение прав\nВ 09:05 operator является субъектом добавления trainee в Lab-Admins. Добавляемый пользователь не является исполнителем изменения. Для глобальной группы приведён 4728; другой тип группы использовал бы другой Event ID. Пара 5136 Value Deleted/Added может описывать одну операцию изменения атрибута. Сопоставлять нужно объект, атрибут, correlation ID исходного события и время.\n\n### Решение аналитика\nОткрытый CHG-LAB-104 — лишь зацепка, а не разрешение автоматически закрыть алерт. Проверьте содержание заявки, утверждение, окно и точный состав изменения. Удаление из группы в 09:10 сокращает длительность выданного доступа, но не доказывает отсутствие действий в эти пять минут. Нужны сессии, доступ к ресурсам и фактическая роль группы.",
+    "queries": [
+      {
+        "label": "Ошибки входа",
+        "query": "data.event_id:\"4625\""
+      },
+      {
+        "label": "Изменение группы",
+        "query": "data.event_id:\"4728\""
+      },
+      {
+        "label": "DC",
+        "query": "agent.name:\"ad-dc01\""
+      },
+      {
+        "label": "Все события",
+        "query": ""
+      }
+    ]
+  },
+  {
+    "id": "network",
+    "title": "03 · MikroTik: изменение конфигурации и обрыв связи",
+    "lesson": "16-03",
+    "premise": "События маршрутизатора и Linux-приёмника. Данные собраны через учебный транспорт; отсутствие UDP-сообщения не считается доказательством отсутствия действия.",
+    "events": [
+      {
+        "time": "11:00:00",
+        "timestamp": "2026-11-03T11:00:00Z",
+        "agent": "router-lab",
+        "level": 3,
+        "id": "110100",
+        "description": "COURSE_HEARTBEAT router-lab seq=1",
+        "src": "192.0.2.1",
+        "user": "monitor",
+        "action": "heartbeat",
+        "kind": "training",
+        "stage": "source"
+      },
+      {
+        "time": "11:00:01",
+        "timestamp": "2026-11-03T11:00:01Z",
+        "agent": "syslog-relay",
+        "level": 3,
+        "id": "110101",
+        "description": "Получена контрольная строка router-lab seq=1",
+        "src": "192.0.2.1",
+        "user": "",
+        "action": "received",
+        "kind": "training",
+        "stage": "collector"
+      },
+      {
+        "time": "11:02:00",
+        "timestamp": "2026-11-03T11:02:00Z",
+        "agent": "router-lab",
+        "level": 4,
+        "id": "110102",
+        "description": "Вход администратора с управляющей станции",
+        "src": "192.0.2.50",
+        "user": "labadmin",
+        "action": "login",
+        "kind": "training"
+      },
+      {
+        "time": "11:03:00",
+        "timestamp": "2026-11-03T11:03:00Z",
+        "agent": "router-lab",
+        "level": 7,
+        "id": "110103",
+        "description": "Добавлена статическая запись DNS lab-update.example",
+        "src": "192.0.2.50",
+        "user": "labadmin",
+        "action": "config_changed",
+        "kind": "training",
+        "target": "lab-update.example -> 198.51.100.20"
+      },
+      {
+        "time": "11:04:00",
+        "timestamp": "2026-11-03T11:04:00Z",
+        "agent": "router-lab",
+        "level": 5,
+        "id": "110104",
+        "description": "ether1: link down",
+        "src": "",
+        "user": "",
+        "action": "link_down",
+        "kind": "training",
+        "target": "ether1"
+      },
+      {
+        "time": "11:04:10",
+        "timestamp": "2026-11-03T11:04:10Z",
+        "agent": "router-lab",
+        "level": 5,
+        "id": "110105",
+        "description": "Не получен ответ DHCP на WAN",
+        "src": "",
+        "user": "",
+        "action": "dhcp_timeout",
+        "kind": "training",
+        "target": "ether1"
+      },
+      {
+        "time": "11:05:01",
+        "timestamp": "2026-11-03T11:05:01Z",
+        "agent": "syslog-relay",
+        "level": 6,
+        "id": "110106",
+        "description": "Не получен ожидаемый heartbeat seq=2",
+        "src": "",
+        "user": "",
+        "action": "heartbeat_missing",
+        "kind": "training",
+        "stage": "collector"
+      },
+      {
+        "time": "11:06:00",
+        "timestamp": "2026-11-03T11:06:00Z",
+        "agent": "router-lab",
+        "level": 3,
+        "id": "110107",
+        "description": "ether1: link up 1G full duplex",
+        "src": "",
+        "user": "",
+        "action": "link_up",
+        "kind": "training",
+        "target": "ether1"
+      },
+      {
+        "time": "11:06:05",
+        "timestamp": "2026-11-03T11:06:05Z",
+        "agent": "router-lab",
+        "level": 3,
+        "id": "110108",
+        "description": "DHCP: адрес WAN получен",
+        "src": "",
+        "user": "",
+        "action": "lease_acquired",
+        "kind": "training",
+        "target": "ether1"
+      },
+      {
+        "time": "11:07:00",
+        "timestamp": "2026-11-03T11:07:00Z",
+        "agent": "router-lab",
+        "level": 3,
+        "id": "110100",
+        "description": "COURSE_HEARTBEAT router-lab seq=3",
+        "src": "192.0.2.1",
+        "user": "monitor",
+        "action": "heartbeat",
+        "kind": "training",
+        "stage": "source"
+      },
+      {
+        "time": "11:07:01",
+        "timestamp": "2026-11-03T11:07:01Z",
+        "agent": "syslog-relay",
+        "level": 3,
+        "id": "110101",
+        "description": "Получена контрольная строка router-lab seq=3",
+        "src": "192.0.2.1",
+        "user": "",
+        "action": "received",
+        "kind": "training",
+        "stage": "collector"
+      },
+      {
+        "time": "11:09:00",
+        "timestamp": "2026-11-03T11:09:00Z",
+        "agent": "router-lab",
+        "level": 4,
+        "id": "110109",
+        "description": "Удалена учебная статическая запись DNS",
+        "src": "192.0.2.50",
+        "user": "labadmin",
+        "action": "config_reverted",
+        "kind": "training",
+        "target": "lab-update.example"
+      }
+    ],
+    "tasks": [
+      "Разделите события доступности и изменения конфигурации",
+      "Укажите источник изменения DNS и какие доказательства авторизации ещё нужны",
+      "Найдите интервал деградации WAN и не смешивайте его с потерей маршрута логирования",
+      "Объясните, почему missing heartbeat не показывает точную причину",
+      "Составьте две независимые линии расследования и порядок проверок"
+    ],
+    "answer": "### Две линии событий\nИзменение DNS в 11:03 и потеря линка в 11:04 близки по времени. Этого недостаточно, чтобы объявить первое причиной второго. DNS-запись затрагивает разрешение конкретного имени; физический link down относится к другому уровню. Проверьте экспорт конфигурации до и после, заявку на изменение и физические/провайдерские события отдельно.\n\n### Что доказывает heartbeat\nПриёмник видел seq=1, не видел ожидаемый seq=2 и снова получил seq=3. Пробел совместим с недоступностью маршрута доставки, потерей UDP, остановкой приёмника или отсутствием генерации контрольного события. Дальнейшие проверки: есть ли seq=2 в локальном журнале роутера; росли ли счётчики пакетов на приёмнике; читался ли файл агентом; появился ли алерт на менеджере. Не меняйте формат TCP/TLS на неизвестной версии RouterOS только ради исчезновения пробела.\n\n### Итог\nЗафиксируйте подтверждённую деградацию WAN 11:04–11:06:05 и отдельное изменение DNS. Откат записи в 11:09 не отменяет необходимость проверить её фактическое влияние и право labadmin выполнять изменение.",
+    "queries": [
+      {
+        "label": "Изменение",
+        "query": "data.action:\"config_changed\""
+      },
+      {
+        "label": "Heartbeat",
+        "query": "data.action:\"heartbeat\""
+      },
+      {
+        "label": "Приёмник",
+        "query": "agent.name:\"syslog-relay\""
+      },
+      {
+        "label": "Все события",
+        "query": ""
+      }
+    ]
+  },
+  {
+    "id": "canary",
+    "title": "04 · FIM: массовые изменения или плановая обработка",
+    "lesson": "20-02",
+    "premise": "Безопасный синтетический сценарий: содержимое только учебных .txt-файлов. Нет шифрования, вредоносных программ или действий на настоящих устройствах.",
+    "events": [
+      {
+        "time": "14:00:00",
+        "timestamp": "2026-11-03T14:00:00Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110200",
+        "description": "Запущено учебное задание backup-format-job",
+        "src": "",
+        "user": "lab-maint",
+        "action": "job_started",
+        "kind": "training",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:01",
+        "timestamp": "2026-11-03T14:00:01Z",
+        "agent": "linux-lab",
+        "level": 4,
+        "id": "110201",
+        "description": "Создан процесс нормализации текстовых файлов",
+        "src": "",
+        "user": "lab-maint",
+        "action": "process_created",
+        "kind": "training",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:04",
+        "timestamp": "2026-11-03T14:00:04Z",
+        "agent": "linux-lab",
+        "level": 7,
+        "id": "550",
+        "description": "Изменился учебный файл invoice-01.txt",
+        "src": "",
+        "user": "lab-maint",
+        "action": "modified",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs/invoice-01.txt",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:05",
+        "timestamp": "2026-11-03T14:00:05Z",
+        "agent": "linux-lab",
+        "level": 7,
+        "id": "550",
+        "description": "Изменился учебный файл invoice-02.txt",
+        "src": "",
+        "user": "lab-maint",
+        "action": "modified",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs/invoice-02.txt",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:06",
+        "timestamp": "2026-11-03T14:00:06Z",
+        "agent": "linux-lab",
+        "level": 10,
+        "id": "110202",
+        "description": "Изменился файл-маркер DO-NOT-EDIT.txt",
+        "src": "",
+        "user": "lab-maint",
+        "action": "modified",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs/DO-NOT-EDIT.txt",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:08",
+        "timestamp": "2026-11-03T14:00:08Z",
+        "agent": "linux-lab",
+        "level": 7,
+        "id": "550",
+        "description": "Изменился учебный файл notes.txt",
+        "src": "",
+        "user": "lab-maint",
+        "action": "modified",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs/notes.txt",
+        "process": "python3"
+      },
+      {
+        "time": "14:00:10",
+        "timestamp": "2026-11-03T14:00:10Z",
+        "agent": "linux-lab",
+        "level": 9,
+        "id": "110203",
+        "description": "Порог изменений учебной директории превышен",
+        "src": "",
+        "user": "lab-maint",
+        "action": "threshold",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs"
+      },
+      {
+        "time": "14:00:12",
+        "timestamp": "2026-11-03T14:00:12Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110204",
+        "description": "Учебное задание завершилось с кодом 0",
+        "src": "",
+        "user": "lab-maint",
+        "action": "job_completed",
+        "kind": "training",
+        "process": "python3"
+      },
+      {
+        "time": "14:01:00",
+        "timestamp": "2026-11-03T14:01:00Z",
+        "agent": "win-lab",
+        "level": 3,
+        "id": "110205",
+        "description": "Контрольный запуск notepad.exe",
+        "src": "",
+        "user": "student",
+        "action": "process_created",
+        "kind": "training",
+        "process": "notepad.exe"
+      },
+      {
+        "time": "14:04:00",
+        "timestamp": "2026-11-03T14:04:00Z",
+        "agent": "linux-lab",
+        "level": 4,
+        "id": "110206",
+        "description": "Владелец подтвердил изменение переводов строк, маркер исключён не был",
+        "src": "",
+        "user": "lab-maint",
+        "action": "change_explained",
+        "kind": "training"
+      },
+      {
+        "time": "14:06:00",
+        "timestamp": "2026-11-03T14:06:00Z",
+        "agent": "linux-lab",
+        "level": 5,
+        "id": "110207",
+        "description": "Учебные файлы восстановлены из проверенной копии",
+        "src": "",
+        "user": "lab-maint",
+        "action": "restored",
+        "kind": "training",
+        "path": "/opt/wazuh-lab/docs"
+      }
+    ],
+    "tasks": [
+      "Найдите четыре исходных FIM-события и не считайте пороговый алерт отдельным файлом",
+      "Определите важность файла-маркера и необходимые проверки процесса",
+      "Объясните, почему завершение с кодом 0 не равно безопасному результату",
+      "Сравните гипотезы атаки, ошибочной обработки и согласованного изменения",
+      "Сформулируйте узкое исправление обнаружения без отключения FIM"
+    ],
+    "answer": "### Подсчёт и контекст\nИсходных FIM-изменений четыре; алерт threshold является производным и не увеличивает число изменённых файлов до пяти. У всех указан lab-maint и python3. Это полезная связь, но имя интерпретатора не раскрывает сценарий и не подтверждает согласованность его параметров. Нужны командная строка, родитель, время запуска и источник файла скрипта.\n\n### Маркер и вердикт\nDO-NOT-EDIT.txt — контроль нарушения ожиданий. Его изменение обосновывает повышенный приоритет, но не устанавливает факт шифрования. В условии нет доказательств шифрования или вымогательства. Код завершения 0 означает успех в смысле программы; программа могла успешно выполнить ошибочное преобразование. Сообщение владельца — свидетельство, которое проверяют сравнением содержимого, заявкой и журналом задания.\n\n### Исправление\nВосстановите учебный маркер, исключите его из конкретного задания и повторите тест. Не исключайте весь python3 и всю директорию из FIM: это скроет посторонние изменения. Сохраните отдельный положительный тест маркера и отрицательный тест допустимой обработки обычного файла. Документируйте ограничение: тренажёр показывает лишь выбранную телеметрию.",
+    "queries": [
+      {
+        "label": "Изменения файлов",
+        "query": "data.action:\"modified\""
+      },
+      {
+        "label": "Маркер",
+        "query": "data.path:\"/opt/wazuh-lab/docs/DO-NOT-EDIT.txt\""
+      },
+      {
+        "label": "Порог",
+        "query": "data.action:\"threshold\""
+      },
+      {
+        "label": "Все события",
+        "query": ""
+      }
+    ]
+  },
+  {
+    "id": "pipeline",
+    "title": "05 · Диагностика: агент active, а свежих алертов нет",
+    "lesson": "19-03",
+    "premise": "Разберите потерю свежести по слоям. Статусы и ID условные; учебные сообщения health не являются готовыми встроенными правилами Wazuh.",
+    "events": [
+      {
+        "time": "16:00:00",
+        "timestamp": "2026-11-03T16:00:00Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110300",
+        "description": "Создан контрольный лог COURSE_PIPELINE seq=101",
+        "src": "",
+        "user": "",
+        "action": "emitted",
+        "kind": "training",
+        "stage": "source"
+      },
+      {
+        "time": "16:00:01",
+        "timestamp": "2026-11-03T16:00:01Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110301",
+        "description": "Сборщик прочитал seq=101",
+        "src": "",
+        "user": "",
+        "action": "collected",
+        "kind": "training",
+        "stage": "agent"
+      },
+      {
+        "time": "16:00:02",
+        "timestamp": "2026-11-03T16:00:02Z",
+        "agent": "wazuh-manager",
+        "level": 3,
+        "id": "110302",
+        "description": "Для seq=101 создан алерт",
+        "src": "",
+        "user": "",
+        "action": "alert_written",
+        "kind": "training",
+        "stage": "manager"
+      },
+      {
+        "time": "16:00:03",
+        "timestamp": "2026-11-03T16:00:03Z",
+        "agent": "wazuh-indexer",
+        "level": 3,
+        "id": "110303",
+        "description": "seq=101 доступен в поиске",
+        "src": "",
+        "user": "",
+        "action": "indexed",
+        "kind": "training",
+        "stage": "indexer"
+      },
+      {
+        "time": "16:04:00",
+        "timestamp": "2026-11-03T16:04:00Z",
+        "agent": "wazuh-manager",
+        "level": 7,
+        "id": "110304",
+        "description": "Filebeat: не удалось доставить пакет, повтор через backoff",
+        "src": "",
+        "user": "",
+        "action": "delivery_failed",
+        "kind": "training",
+        "stage": "filebeat"
+      },
+      {
+        "time": "16:04:01",
+        "timestamp": "2026-11-03T16:04:01Z",
+        "agent": "wazuh-indexer",
+        "level": 10,
+        "id": "110305",
+        "description": "Достигнут порог свободного места, запись ограничена",
+        "src": "",
+        "user": "",
+        "action": "disk_pressure",
+        "kind": "training",
+        "stage": "indexer"
+      },
+      {
+        "time": "16:05:00",
+        "timestamp": "2026-11-03T16:05:00Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110300",
+        "description": "Создан контрольный лог COURSE_PIPELINE seq=102",
+        "src": "",
+        "user": "",
+        "action": "emitted",
+        "kind": "training",
+        "stage": "source"
+      },
+      {
+        "time": "16:05:01",
+        "timestamp": "2026-11-03T16:05:01Z",
+        "agent": "linux-lab",
+        "level": 3,
+        "id": "110301",
+        "description": "Сборщик прочитал seq=102",
+        "src": "",
+        "user": "",
+        "action": "collected",
+        "kind": "training",
+        "stage": "agent"
+      },
+      {
+        "time": "16:05:02",
+        "timestamp": "2026-11-03T16:05:02Z",
+        "agent": "wazuh-manager",
+        "level": 3,
+        "id": "110302",
+        "description": "Для seq=102 создан алерт в alerts.json",
+        "src": "",
+        "user": "",
+        "action": "alert_written",
+        "kind": "training",
+        "stage": "manager"
+      },
+      {
+        "time": "16:06:00",
+        "timestamp": "2026-11-03T16:06:00Z",
+        "agent": "wazuh-manager",
+        "level": 3,
+        "id": "110306",
+        "description": "Агент linux-lab по-прежнему active",
+        "src": "",
+        "user": "",
+        "action": "agent_active",
+        "kind": "training",
+        "stage": "manager"
+      },
+      {
+        "time": "16:08:00",
+        "timestamp": "2026-11-03T16:08:00Z",
+        "agent": "wazuh-indexer",
+        "level": 5,
+        "id": "110307",
+        "description": "После согласованного освобождения места запись восстановлена",
+        "src": "",
+        "user": "",
+        "action": "write_restored",
+        "kind": "training",
+        "stage": "indexer"
+      },
+      {
+        "time": "16:08:05",
+        "timestamp": "2026-11-03T16:08:05Z",
+        "agent": "wazuh-indexer",
+        "level": 3,
+        "id": "110303",
+        "description": "seq=102 стал доступен с задержкой 185 секунд",
+        "src": "",
+        "user": "",
+        "action": "indexed",
+        "kind": "training",
+        "stage": "indexer"
+      }
+    ],
+    "tasks": [
+      "Найдите последний успешный контрольный seq и путь по всем слоям",
+      "Покажите, где уже существует seq=102, хотя его ещё нет в поиске",
+      "Объясните, почему active не доказывает исправность Filebeat и индексатора",
+      "Отделите время события от времени появления в поиске",
+      "Предложите порядок восстановления без удаления alerts.json и произвольного снятия защиты записи"
+    ],
+    "answer": "### Локализация\nseq=102 создан, прочитан агентом и записан менеджером в alerts.json. Поэтому повторная регистрация агента или изменение декодера не устраняют наблюдаемую неисправность. Последний подтверждённый переход — менеджер; первый неподтверждённый до 16:08 — доставка и запись в индексатор. Filebeat сообщает backoff, индексатор — давление по диску. Это согласованная гипотеза причины, которую подтверждают реальными журналами и состоянием узлов.\n\n### Восстановление\nСначала оцените свободное место, резервную ёмкость и действующую политику хранения. Освобождают только данные, удаление которых согласовано и покрыто политикой, либо увеличивают ресурс. Не удаляйте alerts.json и очереди доставки: так можно потерять ещё не переданные события. Не снимайте ограничения записи без устранения причины. Затем проверяют состояние кластера, доставку и новый контрольный seq=103.\n\n### Метрика\nseq=102 появился в поиске в 16:08:05 при времени исходного события 16:05:00: задержка 185 секунд. Статус active не измеряет эту задержку. Для мониторинга нужны и доступность агента, и сквозная свежесть событий, и состояние индексатора. Возврат одного старого события ещё не доказывает, что поток полностью догнал источник.",
+    "queries": [
+      {
+        "label": "Индексатор",
+        "query": "data.stage:\"indexer\""
+      },
+      {
+        "label": "Менеджер",
+        "query": "data.stage:\"manager\""
+      },
+      {
+        "label": "Ошибки доставки",
+        "query": "data.action:\"delivery_failed\""
+      },
+      {
+        "label": "Все события",
+        "query": ""
+      }
+    ]
+  }
+]

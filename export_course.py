@@ -1,4 +1,4 @@
-import json, math
+import json, math, re, hashlib
 from pathlib import Path
 from build_course import modules, lessons, SOURCES
 
@@ -51,17 +51,31 @@ GLOSSARY=[
 ('Корреляция','Связывание нескольких событий по условиям, ключу и временному окну. Ключ без учёта контекста может соединить разные действия.','07-04'),
 ]
 
+GLOSSARY.extend((x['term'],x['text'],x['lesson']) for x in json.loads((ROOT/'curriculum/glossary-v2.json').read_text()))
+
 for li, item in enumerate(lessons):
     for qi, question in enumerate(item['quiz']):
         options=question['options']
-        shift=(li+qi*2)%len(options)
-        question['options']=options[shift:]+options[:shift]
-        question['answer']=(question['answer']-shift)%len(options)
+        original_count=20 if item['id']=='14-04' else 2
+        if li<56 and qi<original_count:
+            # Keep the option positions of already saved answers from edition1.
+            shift=(li+qi*2)%len(options)
+            question['options']=options[shift:]+options[:shift]
+            question['answer']=(question['answer']-shift)%len(options)
+        else:
+            # Deterministic per-question shuffle without an alternating answer pattern.
+            order=sorted(range(len(options)),key=lambda index:hashlib.sha256(f"2:{item['id']}:{qi}:{question['question']}:{index}".encode()).digest())
+            correct=question['answer']
+            question['options']=[options[index] for index in order]
+            question['answer']=order.index(correct)
 
-data=dict(title='Wazuh Практикум',version='4.14',checked='2026-10-27',modules=modules,lessons=lessons,sources=SOURCES,glossary=[dict(term=a,text=b,lesson=c) for a,b,c in GLOSSARY])
+for item in lessons:
+    item['wordCount']=len((item['theory']+' '+item['practice']).split())
+content_stats=dict(words=sum(l['wordCount'] for l in lessons),questions=sum(len(l['quiz']) for l in lessons),cases=sum(bool(l.get('case')) for l in lessons),originalWords=15984)
+data=dict(title='Wazuh Практикум',version='4.14',patch='4.14.9',edition=2,checked='2026-11-03',modules=modules,lessons=lessons,sources=SOURCES,glossary=[dict(term=a,text=b,lesson=c) for a,b,c in GLOSSARY],contentStats=content_stats,labScenarios=json.loads((ROOT/'curriculum/lab-scenarios.json').read_text()))
 (ROOT/'dist/course.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 total=sum(l['minutes'] for l in lessons)
-plan=['# Подробный план обучения Wazuh с нуля','',f'База: Wazuh 4.14. Сверено с официальной документацией 27 октября 2026 года. {len(modules)} модулей, {len(lessons)} уроков, ориентировочно {round(total/60)} часов с самостоятельной практикой.','',
+plan=['# Углублённый план обучения Wazuh: от основ до эксплуатации SOC','',f'База: Wazuh 4.14. Сверено с официальной документацией 3 ноября 2026 года. {len(modules)} модулей, {len(lessons)} уроков, ориентировочно {round(total/60)} часов с самостоятельной практикой.','',
 '## Цель','Научиться разворачивать Wazuh в собственной лаборатории, подключать источники, проверять обнаружения, проводить первичное расследование и документировать эксплуатацию.','',
 '## До начала','Базовые навыки терминала можно получить в модуле 1. Подготовьте гипервизор, чистую Ubuntu Server 24.04, учебную Windows и локальный защищённый журнал проекта. Центральная VM: ориентир 4 vCPU, 8 GiB RAM, 50 GB; Linux-агент: учебный ориентир 2 vCPU/2 GiB/20 GB; Windows-агент: 2 vCPU/4–6 GiB/50–64 GB. Для всего стенда удобен хост с 24–32 GiB памяти; при меньших ресурсах выполняйте упражнения последовательно.','',
 '## Как заниматься','1. Прочитайте объяснение и сформулируйте ожидаемое событие.\n2. Подготовьте копию конфигурации или точку возврата.\n3. Выполните практику на указанном учебном узле.\n4. Проверьте результат на источнике, сервере и в Dashboard.\n5. Запишите доказательство: время, узел, запрос, правило и вывод.\n6. Ответьте на тест, объясните ошибку и повторите непонятный шаг.','',
@@ -81,3 +95,32 @@ plan.extend(['## Правила оценки итоговой работы','И�
 '## Источники','']+ [f'- [{title}]({url})' for title,url in SOURCES.values()])
 (ROOT/'dist/wazuh-learning-plan-ru.md').write_text('\n'.join(plan)+'\n',encoding='utf-8')
 print(json.dumps(dict(modules=len(modules),lessons=len(lessons),hours=round(total/60,1),words=sum(len((l['theory']+' '+l['practice']).split()) for l in lessons)),ensure_ascii=False))
+
+def textbook_text(text):
+    return re.sub(r'^(#{2,4}) ',lambda m:'#'*min(6,len(m[1])+2)+' ',text,flags=re.M)
+
+# Standalone full textbook: explanations, laboratories, cases and answer keys.
+book=['# Wazuh Практикум — полный учебник, редакция 2','',f"Wazuh {data['version']}; контрольный патч {data['patch']}. Ключевые конфигурации сверены {data['checked']}. {len(modules)} модулей, {len(lessons)} уроков, {content_stats['questions']} вопросов.",'','Практические команды предназначены для своего изолированного стенда. Реальная Wazuh в среде автора не запускалась; выводы в уроках — критерии самостоятельной проверки, а синтетические журналы — учебные примеры.','']
+for m in modules:
+    book.extend([f"## Модуль {m['id']:02d}. {m['title']}",'',m['subtitle'],f"Рубеж: {m['outcome']}",''])
+    for l in (x for x in lessons if x['module']==m['id']):
+        book.extend([f"### Урок {l['id'].replace('-','.')}. {l['title']}",'',l['summary'],f"Время с практикой: {l['minutes']} мин.",'','Результаты обучения:']+['- '+g for g in l['goals']]+['','#### Теория','',textbook_text(l['theory']),'','#### Лабораторная работа','',textbook_text(l['practice']),'','#### Ожидаемый результат','',l['expected'],'','#### Типичные ошибки','']+['- '+g for g in l['pitfalls']]+['','#### Кейс для самостоятельного решения','',textbook_text(l['case']['prompt']),'','#### Разбор кейса','',textbook_text(l['case']['answer']),'','#### Самопроверка','']+['- '+g for g in l['checks']]+['','#### Вопросы и объяснения',''])
+        for i,q in enumerate(l['quiz'],1):
+            book.extend([f"{i}. {q['question']}"]+[f"- {j+1}) {o}" for j,o in enumerate(q['options'])]+[f"Ответ: {q['answer']+1}. {q['explanation']}",''])
+        book.extend(['Источники:']+[f"- [{SOURCES[k][0]}]({SOURCES[k][1]})" for k in l['sources']]+[''])
+book.extend(['## Справочник',''])
+for a,b,c in GLOSSARY:book.extend([f'### {a}',b,f"Подробнее: урок {c.replace('-','.')}",''])
+(ROOT/'dist/wazuh-course-complete-ru.md').write_text('\n'.join(book)+'\n',encoding='utf-8')
+manifest=dict(edition=2,checked=data['checked'],modules=len(modules),lessons=len(lessons),hours=round(total/60,1),**content_stats,glossary=len(GLOSSARY),labScenarios=len(data['labScenarios']),labEvents=sum(len(x['events']) for x in data['labScenarios']),lessonWords={l['id']:l['wordCount'] for l in lessons})
+(ROOT/'dist/content-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+print(json.dumps(manifest|{'lessonWords':'see content-manifest.json'},ensure_ascii=False))
+
+# Deterministic lab archive: identical reviewed sources produce identical downloads.
+import zipfile
+with zipfile.ZipFile(ROOT/'dist/wazuh-lab-pack.zip','w',compression=zipfile.ZIP_DEFLATED) as archive:
+    for path in sorted((ROOT/'labs').rglob('*')):
+        if path.is_file() and '__pycache__' not in path.parts and path.suffix!='.pyc':
+            info=zipfile.ZipInfo(path.relative_to(ROOT/'labs').as_posix(),date_time=(2026,11,3,0,0,0))
+            info.compress_type=zipfile.ZIP_DEFLATED
+            info.external_attr=0o644<<16
+            archive.writestr(info,path.read_bytes())

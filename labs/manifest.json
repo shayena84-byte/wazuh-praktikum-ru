@@ -1,0 +1,38 @@
+[
+  {
+    "file": "failed.jsonl",
+    "rule": 100710,
+    "level": 5,
+    "decoder": "json"
+  },
+  {
+    "file": "success.jsonl",
+    "rule": 100711,
+    "level": 3,
+    "decoder": "json"
+  },
+  {
+    "file": "logout.jsonl",
+    "rule": 100700,
+    "level": 1,
+    "decoder": "json"
+  },
+  {
+    "file": "missing.jsonl",
+    "rule": 100700,
+    "level": 1,
+    "decoder": "json"
+  },
+  {
+    "file": "case.jsonl",
+    "rule": 100700,
+    "level": 1,
+    "decoder": "json"
+  },
+  {
+    "file": "extra.jsonl",
+    "rule": 100710,
+    "level": 5,
+    "decoder": "json"
+  }
+]

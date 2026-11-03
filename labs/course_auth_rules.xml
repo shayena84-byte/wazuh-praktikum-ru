@@ -1,0 +1,19 @@
+<group name="course_auth,">
+  <rule id="100700" level="1">
+    <decoded_as>json</decoded_as>
+    <field name="app">^course-auth$</field>
+    <description>Course auth: classification</description>
+  </rule>
+  <rule id="100710" level="5">
+    <if_sid>100700</if_sid>
+    <field name="event">^login$</field>
+    <field name="outcome">^failed$</field>
+    <description>Course auth: failed login</description>
+  </rule>
+  <rule id="100711" level="3">
+    <if_sid>100700</if_sid>
+    <field name="event">^login$</field>
+    <field name="outcome">^success$</field>
+    <description>Course auth: successful login</description>
+  </rule>
+</group>

@@ -1,0 +1,28 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const root=path.join(__dirname,'..');
+const app=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
+const course=JSON.parse(fs.readFileSync(path.join(root,'dist/course.json'),'utf8'));
+const context=vm.createContext({console,document:{},setTimeout,clearTimeout});
+context.fixture=course;
+vm.runInContext(app.slice(0,app.indexOf("document.addEventListener('click'")),context);
+vm.runInContext('course=fixture;state=blank();',context);
+function count(scenario,query){context.scenario=scenario;context.query=query;return vm.runInContext('labScenario=scenario;filterEvents(query).length',context);}
+assert.equal(count('base','data.srcip:"192.0.2.25"'),4);
+assert.equal(count('ad','data.event_id:"4625"'),2);
+assert.equal(count('ad','agent.name:"ad-dc01" AND data.event_id:"5136"'),2);
+assert.equal(count('network','data.action:"config_changed"'),1);
+assert.equal(count('canary','data.action:"modified"'),4);
+assert.equal(count('pipeline','data.stage:"indexer"'),4);
+assert.equal(count('ad','data.event_id:"4625" AND data.srcip:"192.0.2.41"'),0);
+assert.throws(()=>count('base','unknown:1'));
+assert.throws(()=>count('base','data.event_id>=4625'));
+assert.throws(()=>count('base','rule.level>=7 OR rule.level<3'));
+vm.runInContext("state.labChecks=[1];state.caseChecks.ad=[2];labScenario='ad';",context);
+assert.equal(vm.runInContext('labChecksForScenario()[0]',context),2);
+vm.runInContext("labScenario='base';",context);
+assert.equal(vm.runInContext('labChecksForScenario()[0]',context),1);
+console.log('Lab filters: five scenarios, cross-field AND, empty results, invalid syntax and independent case checklists verified.');
